@@ -1,1 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigeria GDP Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f1923;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0 20px;
+            border-bottom: 2px solid #008751;
+        }
+
+        header h1 { font-size: 2rem; color: #00d68f; }
+        header p { color: #aaaaaa; margin-top: 6px; }
+
+        /* GDP Explanation Box */
+        .gdp-box {
+            background: #1a2634;
+            border-left: 5px solid #00d68f;
+            border-radius: 10px;
+            padding: 20px 25px;
+            margin: 25px auto;
+            max-width: 960px;
+        }
+
+        .gdp-box h2 {
+            color: #00d68f;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .gdp-box p {
+            color: #cccccc;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .gdp-box .formula {
+            background: #0f1923;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-top: 12px;
+            color: #00d68f;
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+
+        /* Summary Cards */
+        .cards {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+
+        .card {
+            background: #1a2634;
+            border-left: 5px solid #008751;
+            border-radius: 10px;
+            padding: 18px 24px;
+            min-width: 160px;
+            text-align: center;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .card h2 { font-size: 1.6rem; color: #00d68f; }
+        .card p { color: #aaaaaa; margin-top: 6px; font-size: 0.85rem; }
+        .card.red { border-left-color: #cc3333; }
+        .card.red h2 { color: #ff6b6b; }
+        .card.blue { border-left-color: #3399ff; }
+        .card.blue h2 { color: #66b2ff; }
+
+        /* Charts */
+        .chart-container {
+            background: #1a2634;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 960px;
+        }
+
+        .chart-container h3 {
+            color: #00d68f;
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+        }
+
+        /* Insights & Recommendations */
+        .section {
+            background: #1a2634;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 960px;
+        }
+
+        .section h3 {
+            color: #00d68f;
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+            border-bottom: 1px solid #2a3a4a;
+            padding-bottom: 10px;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 12px;
+            background: #0f1923;
+            border-radius: 8px;
+        }
+
+        .insight-item .icon { font-size: 1.3rem; }
+        .insight-item p { color: #cccccc; font-size: 0.92rem; line-height: 1.6; }
+
+        .rec-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: #0f1923;
+            border-radius: 8px;
+            border-left: 3px solid #008751;
+        }
+
+        .rec-item p { color: #cccccc; font-size: 0.92rem; line-height: 1.6; }
+
+        footer {
+            text-align: center;
+            color: #555;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #1a2634;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🇳🇬 Nigeria GDP Growth Dashboard</h1>
+    <p>Annual GDP Growth Rate (1961 – 2024) | Source: World Bank Open Data</p>
+</header>
+
+<!-- GDP Explanation -->
+<div class="gdp-box">
+    <h2>📖 What is GDP & GDP Growth Rate?</h2>
+    <p>
+        <strong>GDP (Gross Domestic Product)</strong> is the total monetary value of all goods and services
+        produced within a country in a specific period. It is the most widely used measure of a country's
+        economic size and health.
+    </p>
+    <p style="margin-top:10px;">
+        <strong>GDP Growth Rate</strong> measures how fast a country's economy is expanding or shrinking
+        compared to the previous year. A <span style="color:#00d68f;">positive value</span> means the economy
+        grew, while a <span style="color:#ff6b6b;">negative value</span> means it contracted (recession).
+    </p>
+    <div class="formula">
+        GDP Growth Rate (%) = ((GDP this year − GDP last year) / GDP last year) × 100
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="cards">
+    <div class="card">
+        <h2>{{ avg_growth }}%</h2>
+        <p>Average GDP Growth (64 Years)</p>
+    </div>
+    <div class="card">
+        <h2>{{ best_year }}</h2>
+        <p>Best Year ({{ best_value }}% Growth)</p>
+    </div>
+    <div class="card red">
+        <h2>{{ worst_year }}</h2>
+        <p>Worst Year ({{ worst_value }}% Growth)</p>
+    </div>
+    <div class="card blue">
+        <h2>{{ recession_count }}</h2>
+        <p>Recession Years Recorded</p>
+    </div>
+    <div class="card">
+        <h2>{{ boom_count }}</h2>
+        <p>Boom Years (Above 5%)</p>
+    </div>
+</div>
+
+<!-- Line Chart -->
+<div class="chart-container">
+    <h3>📈 GDP Growth Rate Over Time (1961–2024)</h3>
+    <canvas id="lineChart"></canvas>
+</div>
+
+<!-- Bar Chart -->
+<div class="chart-container">
+    <h3>📊 Average GDP Growth by Decade</h3>
+    <canvas id="barChart"></canvas>
+</div>
+
+<!-- Insights -->
+<div class="section">
+    <h3>🔍 Key Insights</h3>
+    {% for insight in insights %}
+    <div class="insight-item">
+        <span class="icon">💡</span>
+        <p>{{ insight }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Recommendations -->
+<div class="section">
+    <h3>✅ Recommendations</h3>
+    {% for rec in recommendations %}
+    <div class="rec-item">
+        <p>→ {{ rec }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Latest Value -->
+<div class="section">
+    <h3>📅 Latest Data Point</h3>
+    <div class="insight-item">
+        <span class="icon">🗓️</span>
+        <p>In <strong>{{ latest_year }}</strong>, Nigeria recorded a GDP growth rate of
+        <strong style="color:#00d68f;">{{ latest_value }}%</strong>.
+        This reflects the country's most recent economic performance as reported by the World Bank.</p>
+    </div>
+</div>
+
+<footer>
+    <p>Built by <strong>Adam Ishaq Isah</strong> | Jaidatech Ventures | Data: World Bank Open Data</p>
+    <p style="margin-top:6px;">© 2025 — Nigeria Economic Dashboard</p>
+</footer>
+
+<script>
+    const years = {{ years | tojson }};
+    const gdpValues = {{ gdp_values | tojson }};
+
+    // Line Chart
+    new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'GDP Growth (%)',
+                data: gdpValues,
+                borderColor: '#00d68f',
+                backgroundColor: 'rgba(0, 214, 143, 0.1)',
+                borderWidth: 2,
+                pointRadius: 3,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#fff' } } },
+            scales: {
+                x: { ticks: { color: '#aaa', maxTicksLimit: 12 }, grid: { color: '#2a3a4a' } },
+                y: { ticks: { color: '#aaa' }, grid: { color: '#2a3a4a' } }
+            }
+        }
+    });
+
+    // Decade Bar Chart
+    const decades = {};
+    years.forEach((year, i) => {
+        const decade = Math.floor(year / 10) * 10 + 's';
+        if (!decades[decade]) decades[decade] = [];
+        decades[decade].push(gdpValues[i]);
+    });
+
+    const decadeLabels = Object.keys(decades);
+    const decadeAvgs = decadeLabels.map(d => {
+        const vals = decades[d];
+        return +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2);
+    });
+
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: decadeLabels,
+            datasets: [{
+                label: 'Avg GDP Growth (%)',
+                data: decadeAvgs,
+                backgroundColor: decadeAvgs.map(v => v >= 0 ? '#008751' : '#cc3333'),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#fff' } } },
+            scales: {
+                x: { ticks: { color: '#aaa' }, grid: { color: '#2a3a4a' } },
+                y: { ticks: { color: '#aaa' }, grid: { color: '#2a3a4a' } }
+            }
+        }
+    });
+</script>
+
+</body>
+  </html>
