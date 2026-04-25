@@ -2,7 +2,8 @@ from flask import Flask, render_template
 import pandas as pd
 import os
 
-base_dir = "/storage/emulated/0/Lesson/nigeria-dashboard"
+import os
+base_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=os.path.join(base_dir, "templates"))
 
 @app.route('/')
